@@ -24,7 +24,7 @@ def load_and_train_model():
     # Fill Missing
     df["Parent_Education_Level"] = df["Parent_Education_Level"].fillna("Bachelor's")
     
-    # Drop identifiers (FIXED: Added the list from your notebook)
+    # Drop identifiers (FILLED IN BASED ON YOUR NOTEBOOK)
     drop_cols =
     # Only drop if they exist to avoid errors
     df.drop(columns=[c for c in drop_cols if c in df.columns], inplace=True)
@@ -41,7 +41,7 @@ def load_and_train_model():
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     df["Family_Income_Level"] = df["Family_Income_Level"].map(income_map)
 
-    # One-Hot Encoding for Department (FIXED: Added "Department")
+    # One-Hot Encoding for Department (FILLED IN)
     df = pd.get_dummies(df, columns=, drop_first=True)
 
     # Outlier Handling (Clipping)
@@ -74,7 +74,7 @@ def load_and_train_model():
 model, scaler, encoder, model_columns, scale_cols = load_and_train_model()
 
 if model is None:
-    st.error("Error: 'masked_data.csv' not found. Please place the CSV file in the same directory as this script.")
+    st.error("Error: 'masked_data.csv' not found. Please upload the CSV file to your GitHub repository.")
     st.stop()
 
 # --- PART 2: USER INPUT UI ---
@@ -139,7 +139,7 @@ if st.button("Predict Grade"):
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     input_df["Family_Income_Level"] = input_df["Family_Income_Level"].map(income_map)
 
-    # 2. One-Hot Encoding (FIXED: Added "Department")
+    # 2. One-Hot Encoding (FILLED IN)
     input_df = pd.get_dummies(input_df, columns=, drop_first=True)
 
     # 3. Align Columns (Ensure all One-Hot columns exist)
@@ -152,7 +152,7 @@ if st.button("Predict Grade"):
     prediction_encoded = model.predict(input_df)
     prediction_label = encoder.inverse_transform(prediction_encoded)
     
-    # Get the single string value from the array
+    # Get the single string value
     grade = prediction_label
 
     # 6. Output
