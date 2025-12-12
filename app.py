@@ -24,7 +24,7 @@ def load_and_train_model():
     # Fill Missing
     df["Parent_Education_Level"] = df["Parent_Education_Level"].fillna("Bachelor's")
     
-    # Drop identifiers (FIXED)
+    # Drop identifiers (FIXED: Added the specific columns from your notebook)
     drop_cols =
     # Only drop if they exist to avoid errors
     df.drop(columns=[c for c in drop_cols if c in df.columns], inplace=True)
@@ -41,7 +41,7 @@ def load_and_train_model():
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     df["Family_Income_Level"] = df["Family_Income_Level"].map(income_map)
 
-    # One-Hot Encoding for Department (FIXED)
+    # One-Hot Encoding for Department (FIXED: Added "Department")
     df = pd.get_dummies(df, columns=, drop_first=True)
 
     # Outlier Handling (Clipping)
@@ -83,7 +83,6 @@ st.sidebar.header("Student Parameters")
 def user_input_features():
     # Categorical Inputs
     gender = st.sidebar.selectbox("Gender", ("Male", "Female"))
-    # Note: Ensure these options match exactly what is in your CSV
     dept = st.sidebar.selectbox("Department", ("Science", "Engineering", "Arts", "Commerce")) 
     parent_edu = st.sidebar.selectbox("Parent Education", ("High School", "Bachelor's", "Master's", "PhD"))
     income = st.sidebar.selectbox("Family Income", ("Low", "Medium", "High"))
@@ -140,7 +139,7 @@ if st.button("Predict Grade"):
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     input_df["Family_Income_Level"] = input_df["Family_Income_Level"].map(income_map)
 
-    # 2. One-Hot Encoding (FIXED)
+    # 2. One-Hot Encoding (FIXED: Added "Department")
     input_df = pd.get_dummies(input_df, columns=, drop_first=True)
 
     # 3. Align Columns (Ensure all One-Hot columns exist)
