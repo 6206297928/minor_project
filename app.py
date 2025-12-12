@@ -15,33 +15,33 @@ st.markdown("Enter student details to predict their final **Grade**.")
 def load_and_train_model():
     # 1. Load Data
     try:
-        # Ensure 'masked_data.csv' is in the same folder as this script
+        # Ensure this file is in the same folder!
         df = pd.read_csv("masked_data.csv")
     except FileNotFoundError:
         return None, None, None, None, None
 
     # 2. Preprocessing
-    # Fill Missing Values
+    # Fill Missing
     df["Parent_Education_Level"] = df["Parent_Education_Level"].fillna("Bachelor's")
     
-    # Drop identifiers (FILLED IN)
+    # Drop identifiers (FIXED: Added the list from your notebook)
     drop_cols =
     # Only drop if they exist to avoid errors
     df.drop(columns=[c for c in drop_cols if c in df.columns], inplace=True)
 
-    # Encode Binary Variables
+    # Encode Binary
     df["Gender"] = df["Gender"].map({"Male": 0, "Female": 1})
     df["Extracurricular_Activities"] = df["Extracurricular_Activities"].map({"No": 0, "Yes": 1})
     df["Internet_Access_at_Home"] = df["Internet_Access_at_Home"].map({"No": 0, "Yes": 1})
 
-    # Encode Ordinal Variables
+    # Encode Ordinal
     edu_map = {"High School": 1, "Bachelor's": 2, "Master's": 3, "PhD": 4}
     df["Parent_Education_Level"] = df["Parent_Education_Level"].map(edu_map)
 
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     df["Family_Income_Level"] = df["Family_Income_Level"].map(income_map)
 
-    # One-Hot Encoding for Department (FILLED IN)
+    # One-Hot Encoding for Department (FIXED: Added "Department")
     df = pd.get_dummies(df, columns=, drop_first=True)
 
     # Outlier Handling (Clipping)
@@ -50,7 +50,7 @@ def load_and_train_model():
         low, high = df[col].quantile([0.05, 0.95])
         df[col] = df[col].clip(lower=low, upper=high)
 
-    # Label Encode Target (Grade)
+    # Label Encode Target
     encoder = LabelEncoder()
     df["Grade"] = encoder.fit_transform(df["Grade"])
     
@@ -139,7 +139,7 @@ if st.button("Predict Grade"):
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     input_df["Family_Income_Level"] = input_df["Family_Income_Level"].map(income_map)
 
-    # 2. One-Hot Encoding (FILLED IN)
+    # 2. One-Hot Encoding (FIXED: Added "Department")
     input_df = pd.get_dummies(input_df, columns=, drop_first=True)
 
     # 3. Align Columns (Ensure all One-Hot columns exist)
