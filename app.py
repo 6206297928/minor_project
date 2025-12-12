@@ -19,51 +19,45 @@ def load_and_train_model():
     except FileNotFoundError:
         return None, None, None, None, None
 
-    # ========== FIX 1: ADD DROP COLUMNS ==========
-    drop_cols = []   # ← add your columns to drop
+    # ---- DROP COLUMNS (based on your notebook) ----
+    drop_cols = ["Student_ID", "First_Name", "Last_Name", "Email", "Total_Score"]
     df.drop(columns=[c for c in drop_cols if c in df.columns], inplace=True)
 
     # Fill missing
     df["Parent_Education_Level"] = df["Parent_Education_Level"].fillna("Bachelor's")
 
-    # Encode Binary
+    # Binary encoding
     df["Gender"] = df["Gender"].map({"Male": 0, "Female": 1})
     df["Extracurricular_Activities"] = df["Extracurricular_Activities"].map({"No": 0, "Yes": 1})
     df["Internet_Access_at_Home"] = df["Internet_Access_at_Home"].map({"No": 0, "Yes": 1})
 
-    # Encode Ordinal
+    # Ordinal encoding
     edu_map = {"High School": 1, "Bachelor's": 2, "Master's": 3, "PhD": 4}
     df["Parent_Education_Level"] = df["Parent_Education_Level"].map(edu_map)
 
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     df["Family_Income_Level"] = df["Family_Income_Level"].map(income_map)
 
-    # ========== FIX 2: ONE-HOT ENCODING ==========
-    department_columns = ["Department"]  # ← UPDATE BASED ON YOUR DATASET
-    df = pd.get_dummies(df, columns=department_columns, drop_first=True)
+    # ---- ONE-HOT ENCODING FOR DEPARTMENT ----
+    df = pd.get_dummies(df, columns=["Department"], drop_first=False)
 
     # Outlier handling
-    numeric_cols = [
-        col for col in df.select_dtypes(include=["int64", "float64"]).columns
-        if col != "Grade"
-    ]
+    numeric_cols = [col for col in df.select_dtypes(include=["int64", "float64"]).columns if col != "Grade"]
     for col in numeric_cols:
         low, high = df[col].quantile([0.05, 0.95])
         df[col] = df[col].clip(lower=low, upper=high)
 
-    # Label Encoding
+    # Label Encode target
     encoder = LabelEncoder()
     df["Grade"] = encoder.fit_transform(df["Grade"])
 
     # Scaling
-    bool_cols = df.select_dtypes(include=["bool"]).columns.tolist()
-    scale_cols = [c for c in numeric_cols if c not in bool_cols]
-
+    scale_cols = numeric_cols
     scaler = StandardScaler()
     df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
-    # Train
-    X = df.drop(columns="Grade", axis=1)
+    # Train model
+    X = df.drop(columns="Grade")
     Y = df["Grade"]
 
     model = RandomForestClassifier(n_estimators=200, random_state=42)
@@ -76,54 +70,57 @@ def load_and_train_model():
 model, scaler, encoder, model_columns, scale_cols = load_and_train_model()
 
 if model is None:
-    st.error("Error: 'masked_data.csv' not found. Please upload the CSV file.")
+    st.error("Error: 'masked_data.csv' not found. Please upload the file.")
     st.stop()
 
 
-# --- PART 2: USER INPUT ---
+# --- PART 2: SIDEBAR INPUTS ---
 st.sidebar.header("Student Parameters")
 
 def user_input_features():
+
     gender = st.sidebar.selectbox("Gender", ("Male", "Female"))
-    dept = st.sidebar.selectbox("Department", ("Science", "Engineering", "Arts", "Commerce"))
+    dept = st.sidebar.selectbox("Department", ("CS", "Engineering", "Mathematics"))
     parent_edu = st.sidebar.selectbox("Parent Education", ("High School", "Bachelor's", "Master's", "PhD"))
     income = st.sidebar.selectbox("Family Income", ("Low", "Medium", "High"))
     extra = st.sidebar.selectbox("Extracurricular Activities", ("Yes", "No"))
     internet = st.sidebar.selectbox("Internet Access", ("Yes", "No"))
 
     attendance = st.sidebar.slider("Attendance (%)", 0, 100, 80)
-    study_hours = st.sidebar.number_input("Study Hours/Week", 0, 168, 15)
-    sleep_hours = st.sidebar.number_input("Sleep Hours/Night", 0, 24, 7)
-    stress = st.sidebar.slider("Stress Level (1-10)", 1, 10, 5)
-
-    st.sidebar.subheader("Exam Scores")
     midterm = st.sidebar.number_input("Midterm Score", 0, 100, 75)
     final = st.sidebar.number_input("Final Score", 0, 100, 75)
     assignments = st.sidebar.number_input("Assignments Avg", 0, 100, 80)
+    quizzes = st.sidebar.number_input("Quizzes Avg", 0, 100, 70)
+    participation = st.sidebar.number_input("Participation Score", 0, 100, 70)
     projects = st.sidebar.number_input("Projects Score", 0, 100, 80)
+    study_hours = st.sidebar.number_input("Study Hours per Week", 0, 168, 15)
+    stress = st.sidebar.slider("Stress Level (1-10)", 1, 10, 5)
+    sleep = st.sidebar.number_input("Sleep Hours per Night", 0, 24, 7)
 
     data = {
         "Gender": gender,
-        "Department": dept,
-        "Parent_Education_Level": parent_edu,
-        "Family_Income_Level": income,
-        "Extracurricular_Activities": extra,
-        "Internet_Access_at_Home": internet,
+        "Age": 18,  # ← If not used in UI, default
         "Attendance (%)": attendance,
-        "Study_Hours_per_Week": study_hours,
-        "Sleep_Hours_per_Night": sleep_hours,
-        "Stress_Level (1-10)": stress,
         "Midterm_Score": midterm,
         "Final_Score": final,
         "Assignments_Avg": assignments,
-        "Projects_Score": projects
+        "Quizzes_Avg": quizzes,
+        "Participation_Score": participation,
+        "Projects_Score": projects,
+        "Study_Hours_per_Week": study_hours,
+        "Extracurricular_Activities": extra,
+        "Internet_Access_at_Home": internet,
+        "Parent_Education_Level": parent_edu,
+        "Family_Income_Level": income,
+        "Stress_Level (1-10)": stress,
+        "Sleep_Hours_per_Night": sleep,
+        "Department": dept,
     }
 
-    return pd.DataFrame([data])     # FIXED: Correct index
+    return pd.DataFrame([data])
 
 
 input_df = user_input_features()
-
 st.subheader("Student Details")
 st.dataframe(input_df)
 
@@ -131,19 +128,30 @@ st.dataframe(input_df)
 # --- PART 3: PREDICTION ---
 if st.button("Predict Grade"):
 
-    # Maps
+    # Binary
     input_df["Gender"] = input_df["Gender"].map({"Male": 0, "Female": 1})
     input_df["Extracurricular_Activities"] = input_df["Extracurricular_Activities"].map({"No": 0, "Yes": 1})
     input_df["Internet_Access_at_Home"] = input_df["Internet_Access_at_Home"].map({"No": 0, "Yes": 1})
 
+    # Ordinal
     edu_map = {"High School": 1, "Bachelor's": 2, "Master's": 3, "PhD": 4}
     input_df["Parent_Education_Level"] = input_df["Parent_Education_Level"].map(edu_map)
 
     income_map = {"Low": 1, "Medium": 2, "High": 3}
     input_df["Family_Income_Level"] = input_df["Family_Income_Level"].map(income_map)
 
-    # One-Hot Encode department
-    input_df = pd.get_dummies(input_df, columns=["Department"], drop_first=True)
+    # Department One-Hot
+    dept_map = {
+        "CS": "Department_CS",
+        "Engineering": "Department_Engineering",
+        "Mathematics": "Department_Mathematics",
+    }
+
+    for col in ["Department_CS", "Department_Engineering", "Department_Mathematics"]:
+        input_df[col] = 0
+
+    input_df[dept_map[input_df["Department"].values[0]]] = 1
+    input_df.drop(columns="Department", inplace=True)
 
     # Align columns
     input_df = input_df.reindex(columns=model_columns, fill_value=0)
@@ -155,8 +163,8 @@ if st.button("Predict Grade"):
     pred_encoded = model.predict(input_df)
     grade = encoder.inverse_transform(pred_encoded)[0]
 
-    # Output
     st.divider()
+
     if grade == "A":
         st.success(f"### Predicted Grade: {grade} 🌟")
         st.balloons()
@@ -164,4 +172,4 @@ if st.button("Predict Grade"):
         st.info(f"### Predicted Grade: {grade}")
     else:
         st.error(f"### Predicted Grade: {grade}")
-        st.write("Consider recommending extra study hours or tutoring.")
+        st.write("Consider suggesting additional study support.")
