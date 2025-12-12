@@ -25,9 +25,8 @@ def load_and_train_model():
     df["Parent_Education_Level"] = df["Parent_Education_Level"].fillna("Bachelor's")
     
     # Drop identifiers (FILLED IN BASED ON YOUR NOTEBOOK)
-    drop_cols =
+    drop_cols = df.drop(columns=[c for c in drop_cols if c in df.columns], inplace=True)
     # Only drop if they exist to avoid errors
-    df.drop(columns=[c for c in drop_cols if c in df.columns], inplace=True)
 
     # Encode Binary
     df["Gender"] = df["Gender"].map({"Male": 0, "Female": 1})
